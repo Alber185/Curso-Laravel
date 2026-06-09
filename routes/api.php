@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Middleware\CheckValueInHeader;
 use App\Http\Middleware\LogRequests;
 use App\Http\Middleware\UpperCaseName;
+use App\Http\Controllers\AuthController;
 
 Route::get("/test", function() { return "El backend funciona correctamente"; })
     ->middleware(LogRequests::class);
@@ -26,9 +27,15 @@ Route::get("/queries/method/join", [QueriesController::class, "join"]);
 Route::get("/queries/method/group", [QueriesController::class, "groupBy"]);
 
 // Información de productos
-Route::get("/products", [ProductController::class, "index"]);
+Route::get("/products", [ProductController::class, "index"])
+    ->middleware(["jwt.auth"]);
 Route::post("/storeproduct", [ProductController::class, "store"])
     ->middleware([CheckValueInHeader::class, UpperCaseName::class]);
 Route::put("/updateproduct/{id}", [ProductController::class, "update"]);
 Route::delete("/product/{id}", [ProductController::class, "delete"])
     ->middleware(CheckValueInHeader::class);
+
+// Ruta de login/registro
+Route::post("/register", [AuthController::class, "register"]);
+Route::post("/login", [AuthController::class, "login"])->name("login");
+// Route::post("/logout", [AuthController::class, "logout"])->middleware("auth:api");
