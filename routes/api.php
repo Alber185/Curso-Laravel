@@ -7,6 +7,7 @@ use App\Http\Middleware\CheckValueInHeader;
 use App\Http\Middleware\LogRequests;
 use App\Http\Middleware\UpperCaseName;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\InfoController;
 
 Route::get("/test", function() { return "El backend funciona correctamente"; })
     ->middleware(LogRequests::class);
@@ -38,4 +39,15 @@ Route::delete("/product/{id}", [ProductController::class, "delete"])
 // Ruta de login/registro
 Route::post("/register", [AuthController::class, "register"]);
 Route::post("/login", [AuthController::class, "login"])->name("login");
-// Route::post("/logout", [AuthController::class, "logout"])->middleware("auth:api");
+
+Route::middleware("jwt.auth")->group(function() {
+    Route::get("/who", [AuthController::class, "who"]);
+    Route::post("/logout", [AuthController::class, "logout"]);
+    Route::post("/refresh", [AuthController::class, "refresh"]);
+});
+
+Route::get("/hi", [InfoController::class, "hiMessage"]);    
+Route::get("/info/tax/{id}", [InfoController::class, "priceWithIVA"]);
+Route::get("/info/encrypt/{data}", [InfoController::class, "encrypt"]);
+Route::get("/info/tax/{id}", [InfoController::class, "priceWithIVA"]);
+Route::get("/info/decrypt/{data}", [InfoController::class, "decrypt"]);

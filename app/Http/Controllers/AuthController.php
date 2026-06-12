@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\UserRequest;
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use App\Events\UserRegistered;
 
 class AuthController extends Controller
 {
@@ -21,6 +20,8 @@ class AuthController extends Controller
             'email' => $validatedData['email'],
             'password' => bcrypt($validatedData['password']),
         ]);
+
+        event(new UserRegistered($user));
 
         return response()->json(['message' => 'Usuario registrado exitosamente', 'user' => $user], Response::HTTP_CREATED);
     }
@@ -42,13 +43,51 @@ class AuthController extends Controller
         catch (\Exception $e) {
             return response()->json(['error' => 'No se pudo crear el token'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        return response()->json(['token' => $token]);
+        return $this->respondWithToken($token);
     }
-/*
+
+    public function who()
+    {
+        $user = JWTAuth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], Response::HTTP_UNAUTHORIZED);
+        }
+        return response()->json(['user' => $user], Response::HTTP_OK);
+    }
+
     public function logout()
     {
-        auth()->logout();
-        return response()->json(['message' => 'Cierre de sesión exitoso'], Response::HTTP_OK);
+        try{
+            $token = JWTAuth::getToken();
+            JWTAuth::invalidate($token);
+            return response()->json(['message' => 'Cierre de sesión exitoso'], Response::HTTP_OK);
+        }
+        catch (JWTException $e) {
+            return response()->json(['error' => 'No se pudo cerrar la sesión o el token no es válido'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
-*/
+
+    public function refresh()
+    {
+        try {
+            $token = JWTAuth::getToken();
+            $newToken = JWTAuth::refresh($token);
+            $newToken = $this->respondWithToken($newToken);
+            JWTAuth::invalidate($token);
+            return $newToken;
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'No se pudo refrescar el token'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    //region - Configuración de autenticación
+    protected function respondWithToken(string $token)
+    {
+        return response()->json([
+            'token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => JWTAuth::factory()->getTTL()
+        ]);
+    }
+    //endregion
 }
