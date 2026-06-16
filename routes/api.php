@@ -8,6 +8,7 @@ use App\Http\Middleware\LogRequests;
 use App\Http\Middleware\UpperCaseName;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InfoController;
+use App\Http\Controllers\ApiController;
 
 Route::get("/test", function() { return "El backend funciona correctamente"; })
     ->middleware(LogRequests::class);
@@ -51,3 +52,6 @@ Route::get("/info/tax/{id}", [InfoController::class, "priceWithIVA"]);
 Route::get("/info/encrypt/{data}", [InfoController::class, "encrypt"]);
 Route::get("/info/tax/{id}", [InfoController::class, "priceWithIVA"]);
 Route::get("/info/decrypt/{data}", [InfoController::class, "decrypt"]);
+
+// API de terceros
+Route::get("/api", [ApiController::class, "get"]);

@@ -26,7 +26,7 @@ class LogUserRegistered implements ShouldQueue
      */
     public function handle(UserRegistered $event): void
     {
-        $this->release(5); // Reintentar después de 10 segundos
+        $this->release(5); // Reintentar después de 5 segundos
         Log::info("Nuevo usuario registrado", ['id' => $event->user->id]);
     }
 
